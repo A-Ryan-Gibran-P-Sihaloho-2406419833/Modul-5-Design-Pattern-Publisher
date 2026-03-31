@@ -77,7 +77,25 @@ This is the place for you to write reflections:
 ### Mandatory (Publisher) Reflections
 
 #### Reflection Publisher-1
-
+1. Di kasus BambangShop ini, menggunakan satu Model struct saja sudah cukup, 
+tidak perlu membuat interface (atau trait di Rust). Pada konsep dasar Observer pattern, 
+interface dipakai jika ada banyak jenis objek berbeda yang ingin menjadi subscriber 
+dengan cara kerja yang berbeda-beda. Namun, di aplikasi kita, semua subscriber (Receiver app) 
+memiliki bentuk dan kebutuhan yang sama persis: mereka hanya butuh url dan name 
+untuk menerima notifikasi via HTTP request. Karena perilakunya seragam, 
+satu struct saja sudah memenuhi kebutuhan.
+2. Penggunaan DashMap diperlukan (lebih baik daripada Vec). Karena url dan id sifatnya unik, 
+mereka bertindak sebagai sebuah kunci (key). Jika kita menggunakan Vec (list biasa), 
+setiap kali kita ingin mencari, memperbarui, atau menghapus subscriber tertentu, 
+program harus mencari satu per satu dari urutan paling awal (memakan waktu lebih lama). 
+Dengan DashMap, program bisa langsung melompat ke data yang dicari menggunakan kunci unik tersebut 
+dengan sangat cepat. Selain itu, DashMap dirancang khusus agar aman (thread-safe) saat digunakan bersamaan.
+3. Kita sebenarnya menggunakan keduanya karena Singleton dan DashMap memecahkan dua masalah yang berbeda. 
+Singleton pattern (yang kita terapkan menggunakan lazy_static!) bertugas untuk memastikan bahwa 
+hanya ada satu variabel SUBSCRIBERS yang dibagikan ke seluruh program. Sementara itu, DashMap adalah 
+tipe struktur datanya yang bertugas memastikan isi data di dalam Singleton tersebut aman saat dibaca atau 
+diubah oleh banyak proses (thread) secara bersamaan (thread-safe). Jadi, kita tidak mengganti DashMap 
+dengan Singleton, tetapi menerapkan pola Singleton pada sebuah objek DashMap.
 #### Reflection Publisher-2
 
 #### Reflection Publisher-3
