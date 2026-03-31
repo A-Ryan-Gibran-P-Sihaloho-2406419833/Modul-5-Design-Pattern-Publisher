@@ -97,5 +97,21 @@ tipe struktur datanya yang bertugas memastikan isi data di dalam Singleton terse
 diubah oleh banyak proses (thread) secara bersamaan (thread-safe). Jadi, kita tidak mengganti DashMap 
 dengan Singleton, tetapi menerapkan pola Singleton pada sebuah objek DashMap.
 #### Reflection Publisher-2
-
+1. Pemisahan ini dilakukan untuk menerapkan prinsip Single Responsibility Principle (SRP) dan Separation of Concerns. 
+Jika sebuah Model menangani struktur data, logika bisnis, sekaligus akses ke database, ukurannya akan menjadi 
+sangat besar dan sulit dipelihara (God Object). Dengan memisahkannya:  
+Model: Hanya fokus mendefinisikan struktur data (representasi objek).   
+Repository: Hanya fokus pada operasi database atau penyimpanan (CRUD).   
+Service: Hanya fokus pada business logic (aturan bisnis).  
+Hal ini membuat kode lebih terstruktur, mudah dites (unit testing), dan mudah dimodifikasi tanpa merusak bagian lain.
+2. Jika kita hanya menggunakan Model, kode akan menjadi sangat rumit (high coupling dan low cohesion). Model Product misalnya, 
+harus tahu cara menyimpan dirinya sendiri ke database, dan juga harus tahu cara membuat Notification, lalu mencari Subscriber 
+untuk mengirim HTTP request. Jika ada perubahan pada cara menyimpan Subscriber, Model Product bisa ikut rusak. Kode akan 
+saling tumpang tindih (spaghetti code), sehingga sangat sulit untuk diperbaiki atau ditambahkan fitur baru di masa depan.
+3. Postman sangat membantu karena memungkinkan kita menguji endpoints API (seperti GET, POST, DELETE) dengan mudah tanpa harus 
+repot-repot membuat antarmuka (frontend) atau client app sungguhan. Beberapa fitur Postman yangmenarik dan berguna untuk 
+Group Project ke depan antara lain:  
+Collections: Memungkinkan kita mengelompokkan request berdasarkan fitur, sehingga rapi dan mudah dibagikan ke anggota tim.   
+Environment Variables: Memudahkan kita mengganti URL dasar (seperti dari localhost ke production server) tanpa harus mengubah URL di setiap request satu per satu.   
+Automated Testing (Scripts): Memungkinkan kita menulis script untuk memverifikasi apakah respons dari API sudah sesuai dengan yang diharapkan secara otomatis.
 #### Reflection Publisher-3
