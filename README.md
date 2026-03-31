@@ -134,3 +134,6 @@ Jika server Subscriber B sedang mati atau lambat merespons (timeout), seluruh si
 user yang menekan tombol "Create Product" akan mengalami proses loading yang sangat lama. Dengan multi-threading, pengiriman 
 notifikasi dilempar ke "belakang layar" (background process) secara paralel sehingga aplikasi utama tetap cepat dan responsif 
 mengembalikan pesan sukses ke user.
+
+![img.png](img.png)
+![img_1.png](img_1.png)
