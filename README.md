@@ -115,3 +115,22 @@ Collections: Memungkinkan kita mengelompokkan request berdasarkan fitur, sehingg
 Environment Variables: Memudahkan kita mengganti URL dasar (seperti dari localhost ke production server) tanpa harus mengubah URL di setiap request satu per satu.   
 Automated Testing (Scripts): Memungkinkan kita menulis script untuk memverifikasi apakah respons dari API sudah sesuai dengan yang diharapkan secara otomatis.
 #### Reflection Publisher-3
+1. Di tutorial ini, kita menggunakan variasi Push model . Hal ini terlihat jelas karena aplikasi Publisher secara aktif 
+mengirimkan data notifikasi (melalui HTTP POST request) langsung ke URL milik Subscriber sesaat setelah suatu event 
+(seperti produk dibuat atau dihapus) terjadi. Subscriber hanya diam menunggu data tersebut "didorong" (di-push) 
+kepadanya.
+2. Jika kita menggunakan Pull model  (di mana Subscriber yang aktif meminta/menarik data dari Publisher), berikut adalah 
+kelebihan dan kekurangannya untuk kasus BambangShop:  
+Kelebihan : Subscriber tidak akan kewalahan (overwhelmed) menerima banyak request sekaligus jika aplikasi 
+sedang sangat sibuk. Mereka bisa menarik data sesuai dengan kapasitas dan waktu luang mereka sendiri.   
+Kekurangan : Notifikasi menjadi tidak real-time karena ada jeda sampai Subscriber melakukan pengecekan 
+(pull). Selain itu, jika Subscriber terus-menerus mengecek ("Apakah ada produk baru?") padahal tidak ada perubahan, ini 
+akan membuang-buang resource jaringan (polling overhead). Publisher juga harus menyimpan riwayat status/notifikasi di memory 
+sampai semua Subscriber selesai menarik data tersebut.
+3. Jika kita tidak menggunakan multi-threading (alias mengeksekusinya secara synchronous atau satu per satu pada thread 
+utama), aplikasi Publisher akan sangat lambat dan rentan hang (macet). Saat sebuah produk baru dibuat, Publisher harus 
+menahan proses utama untuk mengirim HTTP request ke Subscriber A sampai selesai, baru lanjut ke Subscriber B, dan seterusnya. 
+Jika server Subscriber B sedang mati atau lambat merespons (timeout), seluruh sistem Publisher akan tertahan menunggu. Akibatnya, 
+user yang menekan tombol "Create Product" akan mengalami proses loading yang sangat lama. Dengan multi-threading, pengiriman 
+notifikasi dilempar ke "belakang layar" (background process) secara paralel sehingga aplikasi utama tetap cepat dan responsif 
+mengembalikan pesan sukses ke user.
