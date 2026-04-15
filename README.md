@@ -77,7 +77,63 @@ This is the place for you to write reflections:
 ### Mandatory (Publisher) Reflections
 
 #### Reflection Publisher-1
-
+1. Di kasus BambangShop ini, menggunakan satu Model struct saja sudah cukup, 
+tidak perlu membuat interface (atau trait di Rust). Pada konsep dasar Observer pattern, 
+interface dipakai jika ada banyak jenis objek berbeda yang ingin menjadi subscriber 
+dengan cara kerja yang berbeda-beda. Namun, di aplikasi kita, semua subscriber (Receiver app) 
+memiliki bentuk dan kebutuhan yang sama persis: mereka hanya butuh url dan name 
+untuk menerima notifikasi via HTTP request. Karena perilakunya seragam, 
+satu struct saja sudah memenuhi kebutuhan.
+2. Penggunaan DashMap diperlukan (lebih baik daripada Vec). Karena url dan id sifatnya unik, 
+mereka bertindak sebagai sebuah kunci (key). Jika kita menggunakan Vec (list biasa), 
+setiap kali kita ingin mencari, memperbarui, atau menghapus subscriber tertentu, 
+program harus mencari satu per satu dari urutan paling awal (memakan waktu lebih lama). 
+Dengan DashMap, program bisa langsung melompat ke data yang dicari menggunakan kunci unik tersebut 
+dengan sangat cepat. Selain itu, DashMap dirancang khusus agar aman (thread-safe) saat digunakan bersamaan.
+3. Kita sebenarnya menggunakan keduanya karena Singleton dan DashMap memecahkan dua masalah yang berbeda. 
+Singleton pattern (yang kita terapkan menggunakan lazy_static!) bertugas untuk memastikan bahwa 
+hanya ada satu variabel SUBSCRIBERS yang dibagikan ke seluruh program. Sementara itu, DashMap adalah 
+tipe struktur datanya yang bertugas memastikan isi data di dalam Singleton tersebut aman saat dibaca atau 
+diubah oleh banyak proses (thread) secara bersamaan (thread-safe). Jadi, kita tidak mengganti DashMap 
+dengan Singleton, tetapi menerapkan pola Singleton pada sebuah objek DashMap.
 #### Reflection Publisher-2
-
+1. Pemisahan ini dilakukan untuk menerapkan prinsip Single Responsibility Principle (SRP) dan Separation of Concerns. 
+Jika sebuah Model menangani struktur data, logika bisnis, sekaligus akses ke database, ukurannya akan menjadi 
+sangat besar dan sulit dipelihara (God Object). Dengan memisahkannya:  
+Model: Hanya fokus mendefinisikan struktur data (representasi objek).   
+Repository: Hanya fokus pada operasi database atau penyimpanan (CRUD).   
+Service: Hanya fokus pada business logic (aturan bisnis).  
+Hal ini membuat kode lebih terstruktur, mudah dites (unit testing), dan mudah dimodifikasi tanpa merusak bagian lain.
+2. Jika kita hanya menggunakan Model, kode akan menjadi sangat rumit (high coupling dan low cohesion). Model Product misalnya, 
+harus tahu cara menyimpan dirinya sendiri ke database, dan juga harus tahu cara membuat Notification, lalu mencari Subscriber 
+untuk mengirim HTTP request. Jika ada perubahan pada cara menyimpan Subscriber, Model Product bisa ikut rusak. Kode akan 
+saling tumpang tindih (spaghetti code), sehingga sangat sulit untuk diperbaiki atau ditambahkan fitur baru di masa depan.
+3. Postman sangat membantu karena memungkinkan kita menguji endpoints API (seperti GET, POST, DELETE) dengan mudah tanpa harus 
+repot-repot membuat antarmuka (frontend) atau client app sungguhan. Beberapa fitur Postman yangmenarik dan berguna untuk 
+Group Project ke depan antara lain:  
+Collections: Memungkinkan kita mengelompokkan request berdasarkan fitur, sehingga rapi dan mudah dibagikan ke anggota tim.   
+Environment Variables: Memudahkan kita mengganti URL dasar (seperti dari localhost ke production server) tanpa harus mengubah URL di setiap request satu per satu.   
+Automated Testing (Scripts): Memungkinkan kita menulis script untuk memverifikasi apakah respons dari API sudah sesuai dengan yang diharapkan secara otomatis.
 #### Reflection Publisher-3
+1. Di tutorial ini, kita menggunakan variasi Push model . Hal ini terlihat jelas karena aplikasi Publisher secara aktif 
+mengirimkan data notifikasi (melalui HTTP POST request) langsung ke URL milik Subscriber sesaat setelah suatu event 
+(seperti produk dibuat atau dihapus) terjadi. Subscriber hanya diam menunggu data tersebut "didorong" (di-push) 
+kepadanya.
+2. Jika kita menggunakan Pull model  (di mana Subscriber yang aktif meminta/menarik data dari Publisher), berikut adalah 
+kelebihan dan kekurangannya untuk kasus BambangShop:  
+Kelebihan : Subscriber tidak akan kewalahan (overwhelmed) menerima banyak request sekaligus jika aplikasi 
+sedang sangat sibuk. Mereka bisa menarik data sesuai dengan kapasitas dan waktu luang mereka sendiri.   
+Kekurangan : Notifikasi menjadi tidak real-time karena ada jeda sampai Subscriber melakukan pengecekan 
+(pull). Selain itu, jika Subscriber terus-menerus mengecek ("Apakah ada produk baru?") padahal tidak ada perubahan, ini 
+akan membuang-buang resource jaringan (polling overhead). Publisher juga harus menyimpan riwayat status/notifikasi di memory 
+sampai semua Subscriber selesai menarik data tersebut.
+3. Jika kita tidak menggunakan multi-threading (alias mengeksekusinya secara synchronous atau satu per satu pada thread 
+utama), aplikasi Publisher akan sangat lambat dan rentan hang (macet). Saat sebuah produk baru dibuat, Publisher harus 
+menahan proses utama untuk mengirim HTTP request ke Subscriber A sampai selesai, baru lanjut ke Subscriber B, dan seterusnya. 
+Jika server Subscriber B sedang mati atau lambat merespons (timeout), seluruh sistem Publisher akan tertahan menunggu. Akibatnya, 
+user yang menekan tombol "Create Product" akan mengalami proses loading yang sangat lama. Dengan multi-threading, pengiriman 
+notifikasi dilempar ke "belakang layar" (background process) secara paralel sehingga aplikasi utama tetap cepat dan responsif 
+mengembalikan pesan sukses ke user.
+
+![img.png](img.png)
+![img_1.png](img_1.png)
